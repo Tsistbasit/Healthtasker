@@ -57,7 +57,7 @@ Git 用于版本控制和代码管理。
    cd medical_system
    ```
 
-   2.2 初始化 Node.js 项目
+2.2 初始化 Node.js 项目
 
 在终端中运行以下命令初始化一个新的 Node.js 项目：
 
@@ -81,7 +81,11 @@ npm install express socket.io
 npm install cors
 ```
 
-2.4 安装额外的依赖
+2.4 创建服务器文件
+
+在 medical_system 目录下创建一个 server.js 文件，并添加代码。
+
+2.5 安装额外的依赖
 
 上面的代码使用了 `uuid` 来生成唯一的 ID，需要安装该包：
 
@@ -89,7 +93,7 @@ npm install cors
 npm install uuid
 ```
 
-2.5 启动后端服务器
+2.6 启动后端服务器
 
 在终端中运行以下命令启动服务器：
 
@@ -130,7 +134,7 @@ npm install socket.io-client
 
 3.3 创建前端文件
 
-在 `public` 文件夹内，创建以下文件：
+在 `public` 文件夹内，创建以下文件并添加代码：
 
 1. `index.html`
 2. `styles.css`
