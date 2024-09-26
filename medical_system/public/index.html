@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <!-- 定义文档类型和语言 -->
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+      charset="UTF-8"
+    />
+    <title>智能辅助监护系统</title>
+    <!-- 网页标题 -->
+    <link rel="stylesheet" href="styles.css" />
+    <!-- 引入样式表 -->
+  </head>
+  <body>
+    <h1>智能辅助监护系统</h1>
+    <!-- 主标题 -->
+
+    <!-- 在病人信息表格中添加复选框列 -->
+    <section id="patient-management">
+      <h2>病人信息管理</h2>
+      <form id="patient-form">
+        <input type="hidden" id="patient-id" />
+        <label>
+          姓名:
+          <input type="text" id="name" required />
+        </label>
+        <label>
+          房号:
+          <input type="text" id="room" required />
+        </label>
+        <label>
+          药物:
+          <input type="text" id="medicine" required />
+        </label>
+        <button type="submit">添加/更新病人</button>
+      </form>
+
+      <table id="patients-table">
+        <thead>
+          <tr>
+            <th>选择</th>
+            <!-- 新增复选框列 -->
+            <th>姓名</th>
+            <th>房号</th>
+            <th>药物</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 病人列表将动态生成 -->
+        </tbody>
+      </table>
+    </section>
+
+    <section id="task-management">
+      <h2>任务下发</h2>
+      <button id="send-task-button">发送送药任务</button>
+      <!-- 发送任务按钮 -->
+      <h3>任务状态</h3>
+      <table id="tasks-table">
+        <thead>
+          <tr>
+            <th>任务ID</th>
+            <th>病人姓名</th>
+            <th>状态</th>
+            <th>操作</th>
+            <!-- 新增操作列 -->
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 任务状态将动态生成 -->
+        </tbody>
+      </table>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- 引入Socket.IO脚本 -->
+    <script src="app.js"></script>
+    <!-- 引入应用程序脚本 -->
+  </body>
+</html>
