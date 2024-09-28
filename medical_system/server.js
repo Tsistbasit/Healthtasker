@@ -3,7 +3,7 @@
 // 导入所需模块
 const express = require("express");
 const http = require("http");
-const socketIo = require("socket.io");
+const WebSocket = require("ws"); // 引入 ws 库
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
 
@@ -17,14 +17,13 @@ app.use(express.json());
 // 创建HTTP服务器
 const server = http.createServer(app);
 
-// 初始化Socket.io以实现WebSocket功能
-const io = socketIo(server, {
-  cors: {
-    origin: "*", // 仅用于开发环境。生产环境中应指定前端URL。
-    methods: ["GET", "POST"],
-  },
+// 初始化WebSocket服务器
+const wss = new WebSocket.Server({ server });
+// 定义中间件
+app.use((req, res, next) => {
+  console.log(`请求方法: ${req.method}, 请求路径: ${req.url}`);
+  next(); // 将控制权传递给下一个中间件
 });
-
 // 内存数据库存储病人信息和任务
 let patients = [];
 let tasks = {};
@@ -108,8 +107,12 @@ app.post("/tasks", (req, res) => {
   };
   tasks[taskId] = task;
 
-  // 通过WebSocket发送任务给机器人
-  io.emit("new_task", task);
+  // 通过WebSocket发送任务给连接的客户端
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: "new_task", task }));
+    }
+  });
 
   res.status(201).json(task);
 });
@@ -156,21 +159,30 @@ app.delete("/tasks/:id", (req, res) => {
 });
 
 // WebSocket连接事件监听
-io.on("connection", (socket) => {
-  console.log("客户端连接:", socket.id);
+wss.on("connection", (ws) => {
+  console.log("客户端WebSocket事件连接:", ws._socket.remoteAddress);
 
   // 监听来自机器人的任务状态更新
-  socket.on("task_status", (data) => {
-    const { taskId, status } = data;
-    if (tasks[taskId]) {
-      tasks[taskId].status = status;
-      // 向所有连接的客户端广播状态更新
-      io.emit("update_task_status", { taskId, status });
+  ws.on("message", (message) => {
+    const data = JSON.parse(message);
+    if (data.type === "task_status") {
+      const { taskId, status } = data;
+      if (tasks[taskId]) {
+        tasks[taskId].status = status;
+        // 向所有连接的客户端广播状态更新
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(
+              JSON.stringify({ type: "update_task_status", taskId, status })
+            );
+          }
+        });
+      }
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("客户端断开连接:", socket.id);
+  ws.on("close", () => {
+    console.log("客户端WebSocket事件断开连接");
   });
 });
 
