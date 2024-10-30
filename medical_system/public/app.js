@@ -99,8 +99,49 @@ registerForm.addEventListener("submit", (e) => {
   }
 });
 
+// JavaScript 客户端代码，用于从服务器获取用户信息并在页面上动态展示
+
+async function loadUsers() {
+  try {
+    const response = await fetch("/users");
+    if (response.ok) {
+      const users = await response.json();
+      const userList = document.getElementById("user-list");
+      userList.innerHTML = "";
+      users.forEach((user) => {
+        const userCard = document.createElement("div");
+        userCard.className = "user-card";
+        userCard.style.display = "flex";
+        userCard.style.alignItems = "center";
+        userCard.style.gap = "20px";
+        userCard.style.padding = "10px";
+        userCard.style.marginBottom = "15px";
+        userCard.style.border = "1px solid #b0c4de";
+        userCard.style.borderRadius = "8px";
+        userCard.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+        userCard.innerHTML = `
+          <img src="img/tx.png" alt="用户头像" class="user-avatar" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;" />
+          <div class="user-details">
+            <p>用户名: ${user.username}</p>
+            <p>状态: ${user.status}</p>
+          </div>
+        `;
+        userList.appendChild(userCard);
+      });
+    } else {
+      console.error("获取用户信息失败");
+    }
+  } catch (error) {
+    console.error("获取用户信息时发生错误:", error);
+  }
+}
+
+// // 在页面加载完成后调用 loadUsers 函数
+//document.addEventListener("DOMContentLoaded", loadUsers);
+
 // 获取所有病人信息并更新到表格中
 function fetchPatients() {
+  loadUsers();
   fetch(`${baseURL}/patients`)
     .then((response) => response.json())
     .then((data) => {

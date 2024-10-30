@@ -49,6 +49,70 @@
             >
           </li>
         </ul>
+        <!-- 添加用户信息栏，合并为选择栏的一部分
+        <div
+          class="user-info-box"
+          style="
+            border: 4px solid #b0c4de;
+            padding: 10px;
+            margin-top: 300px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <h3>用户信息</h3>
+          <div
+            class="user-card"
+            style="display: flex; align-items: center; gap: 10px"
+          >
+            <img
+              src="img/tx.png"
+              alt="用户头像"
+              class="user-avatar"
+              style="width: 60px; height: 60px; margin-right: 25px"
+            />
+            <div class="user-details">
+              <p>用户名: User1</p>
+              <p>状态: 在线</p>
+            </div>
+          </div>
+          <div
+            class="user-card"
+            style="display: flex; align-items: center; gap: 10px"
+          >
+            <img
+              src="img/tx.png"
+              alt="用户头像"
+              class="user-avatar"
+              style="width: 60px; height: 60px; margin-right: 25px"
+            />
+            <div class="user-details">
+              <p>用户名: User2</p>
+              <p>状态: 离线</p>
+            </div>
+          </div>
+          <!-- 其他用户信息 -->
+        <!--<div class="user-notes">
+            <p>用户备注或通知信息...</p>
+          </div>
+        </div> -->
+        <!-- 添加用户信息栏，合并为选择栏的一部分 -->
+        <div
+          class="user-info-box"
+          style="
+            border: 4px solid #b0c4de;
+            padding: 10px;
+            margin-top: 300px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <h3>用户信息</h3>
+          <div id="user-list"></div>
+          <div class="user-notes">
+            <p>用户备注或通知信息...</p>
+          </div>
+        </div>
       </nav>
 
       <main>
@@ -74,23 +138,8 @@
           </table>
         </section>
 
-        <section id="patient-managements" style="display: none">
-          <h2>病人信息</h2>
-          <table id="patients-table2">
-            <thead>
-              <tr>
-                <th>选择</th>
-                <th>姓名</th>
-                <th>房号</th>
-                <th>药物</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </section>
-
         <section id="task-management" style="display: none">
-          <h2>任务下发</h2>
+          <h2>加急任务下发</h2>
           <button id="send-task-button" onclick="sendTask()">
             发送送药任务
           </button>
@@ -126,6 +175,21 @@
                 <th>药物</th>
                 <th>状态</th>
                 <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+        <section id="patient-managements" style="display: none">
+          <h2>病人信息</h2>
+          <table id="patients-table2">
+            <thead>
+              <tr>
+                <th>选择</th>
+                <th>姓名</th>
+                <th>房号</th>
+                <th>药物</th>
               </tr>
             </thead>
             <tbody></tbody>

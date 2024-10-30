@@ -29,6 +29,20 @@ app.use((req, res, next) => {
   next(); // 将控制权传递给下一个中间件
 });
 
+const session = require("express-session");
+
+app.use(
+  session({
+    secret: "your_secret_key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // 如果不使用 HTTPS，设置 secure 为 false
+  })
+);
+
+// 将 `images` 目录公开
+app.use("/images", express.static(path.join(__dirname, "images")));
+
 // 初始化SQLite数据库
 const db = new sqlite3.Database("./monitoring_system.db", (err) => {
   if (err) {
@@ -40,14 +54,34 @@ const db = new sqlite3.Database("./monitoring_system.db", (err) => {
 
 // 创建表
 db.serialize(() => {
+  // 创建其他表
   db.run(
     "CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, name TEXT, room TEXT, medicine TEXT)"
   );
+
   db.run(
     "CREATE TABLE IF NOT EXISTS tasks (taskId TEXT PRIMARY KEY, patientId TEXT, taskName TEXT, taskTime TEXT, command TEXT, status TEXT)"
   );
+
   db.run(
     "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT)"
+  );
+
+  // 创建 sessions_temp 表
+  db.run(
+    `CREATE TABLE IF NOT EXISTS sessions (
+      sessionId TEXT PRIMARY KEY,
+      userId TEXT UNIQUE,
+      isLoggedIn INTEGER,
+      lastAccessed TIMESTAMP
+    )`,
+    (err) => {
+      if (err) {
+        console.error("创建 sessions 表失败:", err);
+      } else {
+        console.log("成功创建 sessions 表");
+      }
+    }
   );
 });
 
@@ -109,6 +143,29 @@ app.post("/register", async (req, res) => {
 });
 
 /**
+ * 获取所有用户的信息
+ * @param {Object} req - 请求对象
+ * @param {Object} res - 响应对象，返回用户列表
+ */
+app.get("/register", (req, res) => {
+  // 检查请求者是否为管理员或拥有适当权限（可选）
+  // 如果需要身份验证，可以在这里进行检查
+  // if (!req.session || !req.session.isAdmin) {
+  //   return res.status(403).json({ message: "无权限访问" });
+  // }
+
+  db.all("SELECT id, username, password FROM users", [], (err, rows) => {
+    if (err) {
+      console.error("获取用户信息失败:", err);
+      return res.status(500).json({ message: "获取用户信息失败" });
+    }
+
+    // 返回用户列表，注意：仅用于调试或管理员使用，生产环境中需谨慎
+    res.status(200).json(rows);
+  });
+});
+
+/**
  * 用户登录
  * @param {Object} req - 请求对象，包含用户名和密码
  * @param {Object} res - 响应对象，返回登录结果
@@ -125,17 +182,62 @@ app.post("/login", (req, res) => {
     [username],
     async (err, row) => {
       if (err) {
-        res.status(500).json({ message: "登录失败" });
-      } else if (row) {
+        return res.status(500).json({ message: "登录失败" });
+      }
+      if (row) {
         // 比较密码
         const match = await bcrypt.compare(password, row.password);
         if (match) {
-          res.status(200).json({ message: "登录成功" });
+          req.session.isLoggedIn = true;
+          req.session.userId = row.id;
+
+          // 更新或插入会话信息
+          db.run(
+            `INSERT INTO sessions (sessionId, userId, isLoggedIn, lastAccessed) 
+             VALUES (?, ?, ?, ?) 
+             ON CONFLICT(userId) 
+             DO UPDATE SET isLoggedIn = ?, lastAccessed = ?`,
+            [req.session.id, row.id, 1, new Date(), 1, new Date()],
+            (err) => {
+              if (err) {
+                console.error("更新会话信息失败:", err);
+              }
+            }
+          );
+
+          return res.status(200).json({ message: "登录成功" });
         } else {
-          res.status(401).json({ message: "用户名或密码错误1" });
+          return res.status(401).json({ message: "用户名或密码错误" });
         }
       } else {
-        res.status(401).json({ message: "用户名或密码错误2" });
+        return res.status(401).json({ message: "用户名或密码错误" });
+      }
+    }
+  );
+});
+
+app.get("/users", (req, res) => {
+  if (!req.session || !req.session.isLoggedIn) {
+    return res.status(401).json({ message: "请先登录" });
+  }
+  db.all(
+    `SELECT id, username, 
+     CASE 
+       WHEN EXISTS (SELECT 1 FROM sessions WHERE userId = users.id AND isLoggedIn = 1) 
+       THEN '在线' 
+       ELSE '离线' 
+     END AS status 
+     FROM users`,
+    [],
+    (err, rows) => {
+      if (err) {
+        console.error("数据库查询错误:", err);
+        res
+          .status(500)
+          .json({ message: "获取用户信息失败", error: err.message });
+      } else {
+        console.log("用户列表:", rows);
+        res.status(200).json(rows);
       }
     }
   );

@@ -84,7 +84,7 @@ button:hover {
 }
 
 .sidebar li {
-  margin-bottom: 2rem; /* 每个列表项之间的间距为 2rem */
+  margin-bottom: 3rem; /* 每个列表项之间的间距为 4rem */
 }
 
 .sidebar a {
